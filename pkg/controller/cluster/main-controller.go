@@ -20,6 +20,7 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"k8s.io/klog"
@@ -427,7 +428,16 @@ func (c *Controller) syncHandler(key string) error {
 			if err != nil {
 				return err
 			}
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate)
+
+			svc, err := c.kubeClientSet.
+				CoreV1().
+				Services(mi.Namespace).
+				Get(context.Background(), "mindns", metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, svc.Spec.ClusterIP)
 			ss, err = c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Create(ctx, ss, cOpts)
 			if err != nil {
 				return err
@@ -466,7 +476,15 @@ func (c *Controller) syncHandler(key string) error {
 				}
 			}
 
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate)
+			svc, err := c.kubeClientSet.
+				CoreV1().
+				Services(mi.Namespace).
+				Get(context.Background(), "mindns", metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, svc.Spec.ClusterIP)
 			klog.V(2).Infof("Removing the existing StatefulSet %s with replicas: %d", name, *ss.Spec.Replicas)
 			if err := c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Delete(ctx, ss.Name, metav1.DeleteOptions{}); err != nil {
 				return err
@@ -492,7 +510,14 @@ func (c *Controller) syncHandler(key string) error {
 				return err
 			}
 			klog.V(4).Infof("Updating MinIOInstance %s MinIO server version %s, to: %s", name, mi.Spec.Image, ss.Spec.Template.Spec.Containers[0].Image)
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate)
+			minsvc, err := c.kubeClientSet.
+				CoreV1().
+				Services(mi.Namespace).
+				Get(context.Background(), "mindns", metav1.GetOptions{})
+			if err != nil {
+				log.Println(err)
+			}
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, minsvc.Spec.ClusterIP)
 			if _, err := c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Update(ctx, ss, uOpts); err != nil {
 				return err
 			}
