@@ -430,7 +430,7 @@ func (c *Controller) syncHandler(key string) error {
 				return err
 			}
 
-			svc, err := c.kubeClientSet.
+			discoSvc, err := c.kubeClientSet.
 				CoreV1().
 				Services(mi.Namespace).
 				Get(context.Background(), discoSvcName, metav1.GetOptions{})
@@ -438,7 +438,7 @@ func (c *Controller) syncHandler(key string) error {
 				return err
 			}
 
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, svc.Spec.ClusterIP)
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, discoSvc.Spec.ClusterIP)
 			ss, err = c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Create(ctx, ss, cOpts)
 			if err != nil {
 				return err
@@ -477,7 +477,7 @@ func (c *Controller) syncHandler(key string) error {
 				}
 			}
 
-			svc, err := c.kubeClientSet.
+			discoSvc, err := c.kubeClientSet.
 				CoreV1().
 				Services(mi.Namespace).
 				Get(context.Background(), discoSvcName, metav1.GetOptions{})
@@ -485,7 +485,7 @@ func (c *Controller) syncHandler(key string) error {
 				return err
 			}
 
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, svc.Spec.ClusterIP)
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, discoSvc.Spec.ClusterIP)
 			klog.V(2).Infof("Removing the existing StatefulSet %s with replicas: %d", name, *ss.Spec.Replicas)
 			if err := c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Delete(ctx, ss.Name, metav1.DeleteOptions{}); err != nil {
 				return err
@@ -511,14 +511,14 @@ func (c *Controller) syncHandler(key string) error {
 				return err
 			}
 			klog.V(4).Infof("Updating MinIOInstance %s MinIO server version %s, to: %s", name, mi.Spec.Image, ss.Spec.Template.Spec.Containers[0].Image)
-			minsvc, err := c.kubeClientSet.
+			minSvc, err := c.kubeClientSet.
 				CoreV1().
 				Services(mi.Namespace).
 				Get(context.Background(), discoSvcName, metav1.GetOptions{})
 			if err != nil {
 				log.Println(err)
 			}
-			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, minsvc.Spec.ClusterIP)
+			ss = statefulsets.NewForMinIO(mi, hlSvc.Name, c.hostsTemplate, minSvc.Spec.ClusterIP)
 			if _, err := c.kubeClientSet.AppsV1().StatefulSets(mi.Namespace).Update(ctx, ss, uOpts); err != nil {
 				return err
 			}
