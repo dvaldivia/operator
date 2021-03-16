@@ -9,5 +9,5 @@ set -o pipefail
 REPOSITORY=github.com/minio/operator
 $(go env GOPATH)/src/k8s.io/code-generator/generate-groups.sh all \
                 $REPOSITORY/pkg/client $REPOSITORY/pkg/apis \
-                "minio.min.io:v1 minio.min.io:v2" \
+                "minio.min.io:v1 minio.min.io:v2 warp.min.io:v1" \
                 --go-header-file "k8s/boilerplate.go.txt"
