@@ -184,6 +184,25 @@ func NewForPrometheus(t *miniov2.Tenant, serviceName string) *appsv1.StatefulSet
 	//    volumeMounts:
 	//    - name: prometheus-kube-prometheus-db
 	//      mountPath: /var/prometheus/data
+
+	var initContainerSecurityContext corev1.SecurityContext
+	// If securityContext is present InitContainer still requires running with elevated privileges
+	// and user will have to provide a serviceAccount that allows this
+	if t.Spec.Prometheus.SecurityContext != nil {
+		var prometheusRunAsUser int64
+		var prometheusRunAsNonRoot bool
+		var prometheusAllowPrivilegeEscalation bool
+
+		prometheusRunAsUser = 0
+		prometheusRunAsNonRoot = false
+		prometheusAllowPrivilegeEscalation = true
+
+		initContainerSecurityContext = corev1.SecurityContext{
+			RunAsUser:                &prometheusRunAsUser,
+			RunAsNonRoot:             &prometheusRunAsNonRoot,
+			AllowPrivilegeEscalation: &prometheusAllowPrivilegeEscalation,
+		}
+	}
 	initContainers := []corev1.Container{
 		{
 			Name:  "prometheus-init-chown-data",
@@ -194,7 +213,8 @@ func NewForPrometheus(t *miniov2.Tenant, serviceName string) *appsv1.StatefulSet
 				"1000:2000",
 				"/prometheus",
 			},
-			VolumeMounts: prometheusVolumeMounts(t),
+			SecurityContext: &initContainerSecurityContext,
+			VolumeMounts:    prometheusVolumeMounts(t),
 		},
 	}
 
@@ -223,6 +243,7 @@ func NewForPrometheus(t *miniov2.Tenant, serviceName string) *appsv1.StatefulSet
 					RestartPolicy:      corev1.RestartPolicyAlways,
 					SchedulerName:      t.Scheduler.Name,
 					NodeSelector:       t.Spec.Prometheus.NodeSelector,
+					Affinity:           t.Spec.Prometheus.Affinity,
 					InitContainers:     initContainers,
 					SecurityContext:    t.Spec.Prometheus.SecurityContext,
 				},

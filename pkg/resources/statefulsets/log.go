@@ -100,7 +100,7 @@ func logVolumeMounts(t *miniov2.Tenant) []corev1.VolumeMount {
 func logDbContainer(t *miniov2.Tenant) corev1.Container {
 	container := corev1.Container{
 		Name:  miniov2.LogPgContainerName,
-		Image: miniov2.LogPgImage,
+		Image: t.Spec.Log.Db.Image,
 		Ports: []corev1.ContainerPort{
 			{
 				ContainerPort: miniov2.LogPgPort,
@@ -162,6 +162,41 @@ func NewForLogDb(t *miniov2.Tenant, serviceName string) *appsv1.StatefulSet {
 	}
 	// if we have DB configurations to honor
 	if t.Spec.Log.Db != nil {
+
+		var initContainerSecurityContext corev1.SecurityContext
+
+		// If securityContext is present InitContainer still requires running with elevated privileges
+		// and user will have to provide a serviceAccount that allows this
+		if t.Spec.Log.Db.SecurityContext != nil {
+			var postgresRunAsUser int64
+			var postgresRunAsNonRoot bool
+			var postgresAllowPrivilegeEscalation bool
+
+			postgresRunAsUser = 0
+			postgresRunAsNonRoot = false
+			postgresAllowPrivilegeEscalation = true
+
+			initContainerSecurityContext = corev1.SecurityContext{
+				RunAsUser:                &postgresRunAsUser,
+				RunAsNonRoot:             &postgresRunAsNonRoot,
+				AllowPrivilegeEscalation: &postgresAllowPrivilegeEscalation,
+			}
+		}
+		initContainers := []corev1.Container{
+			{
+				Name:  "postgres-init-chown-data",
+				Image: t.Spec.Log.Db.InitImage,
+				Command: []string{
+					"chown",
+					"-R",
+					"999",
+					"/var/lib/postgresql/data",
+				},
+				SecurityContext: &initContainerSecurityContext,
+				VolumeMounts:    logVolumeMounts(t),
+			},
+		}
+
 		// Attach security Policy
 		dbPod.Spec.SecurityContext = t.Spec.Log.Db.SecurityContext
 		// attach affinity clauses
@@ -173,10 +208,11 @@ func NewForLogDb(t *miniov2.Tenant, serviceName string) *appsv1.StatefulSet {
 		// attach tolerations
 		dbPod.Spec.Tolerations = t.Spec.Log.Db.Tolerations
 		// attach serviceAccount
-		dbPod.Spec.ServiceAccountName = t.Spec.ServiceAccountName
 		if t.Spec.Log.Db.ServiceAccountName != "" {
 			dbPod.Spec.ServiceAccountName = t.Spec.Log.Db.ServiceAccountName
 		}
+		// attach init containers
+		dbPod.Spec.InitContainers = initContainers
 	}
 
 	ss := &appsv1.StatefulSet{
