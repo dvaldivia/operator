@@ -11,7 +11,7 @@ This README provides a high level description of the MinIO Operator and
 quickstart instructions. See https://min.io/docs/minio/kubernetes/upstream/index.html for 
 complete documentation on the MinIO Operator.
 
-## Table of Contents
+## Table of Contents:
 
 * [Architecture](#architecture)
   * [MinIO Console](#minio-console)
