@@ -50,7 +50,7 @@ remove_policies() {
   mc admin policy remove minio users-$TIMESTAMP
   mc admin policy remove minio watch-$TIMESTAMP
   mc admin policy remove minio inspect-allowed-$TIMESTAMP
-  mc admin policy remove minio inspect-not-allowed-$TIMESTAMPmc
+  mc admin policy remove minio inspect-not-allowed-$TIMESTAMP
   mc admin policy remove minio fix-prefix-policy-ui-crash-$TIMESTAMP
   mc admin policy remove minio conditions-policy-$TIMESTAMP
   mc admin policy remove minio conditions-policy-2-$TIMESTAMP
