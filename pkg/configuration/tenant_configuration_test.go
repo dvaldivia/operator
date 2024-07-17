@@ -1,5 +1,5 @@
 // This file is part of MinIO Operator
-// Copyright (c) 2023 MinIO, Inc.
+// Copyright (c) 2024 MinIO, Inc.
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -74,7 +74,7 @@ export MINIO_UPDATE_MINISIGN_PUBKEY="RWTx5Zr1tiHQLwG9keckT0c45M3AGeHD6IvimQHpyRy
 	}
 }
 
-func TestGetTenantConfiguration(t *testing.T) {
+func TestBuildTenantEnvs(t *testing.T) {
 	type args struct {
 		tenant         *miniov2.Tenant
 		cfgEnvExisting map[string]corev1.EnvVar

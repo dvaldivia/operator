@@ -49,8 +49,12 @@ func configureSidecarServer(c *Controller) *http.Server {
 // CheckConfigHandler - POST /sidecar/v1/config?c={hash}
 func (c *Controller) CheckConfigHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	hash := vars["c"]
+	// check if the current local stored configuration matches the hash
+
+	// if not try to re-generate the configuration using listers
+
+	// if not try to re-generate the configuration using live api results
 
 	log.Println("Checking config hash: ", hash)
 }
