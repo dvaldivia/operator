@@ -1063,7 +1063,7 @@ func (c *Controller) syncHandler(key string) (Result, error) {
 		}
 
 		var restarted bool
-		// Only restart if there is an existing initialized pool, if there are no initialized
+		// Only restart if there is an existing-initialized pool, if there are no initialized
 		// pools no need to restart.
 		if initializedPool.Name != "" && addingNewPool {
 			// Restart services to get new args since we are expanding the deployment here.

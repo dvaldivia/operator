@@ -88,8 +88,8 @@ func Validate(tenantName string) {
 }
 
 // ReadTmpConfig reads the seeded configuration from a tmp location
-func ReadTmpConfig() (bool, bool, string, error) {
-	file, err := os.Open("/tmp/minio-config/config.env")
+func ReadTmpConfig(fileLocation string) (bool, bool, string, error) {
+	file, err := os.Open(fileLocation)
 	if err != nil {
 		log.Fatal(err)
 	}
